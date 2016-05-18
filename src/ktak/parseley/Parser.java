@@ -61,7 +61,8 @@ public class Parser<NT,T> {
                 (unit) -> new StateSet<>(grammar.ntCmp, grammar.tCmp),
                 (rules) -> rules.sortedList().foldRight(
                         new StateSet<>(grammar.ntCmp, grammar.tCmp),
-                        (rhs) -> (stateSet) -> stateSet.add(Item.item(grammar.start, rhs.rhs, 0L))));
+                        (rhs) -> (stateSet) ->
+                                stateSet.add(Item.item(grammar.start, rhs.rhs, 0L))));
         
     }
     
@@ -75,7 +76,7 @@ public class Parser<NT,T> {
                 (unit) -> Tuple.create(stateSet, scanItems),
                 (tup) -> tup.left.match(
                         (predictItem) -> predictAndComplete(
-                                predict(tup.right, predictItem.nextNonTerminal, index),
+                                predict(tup.right, predictItem, index),
                                 index,
                                 stateSets,
                                 scanItems),
@@ -85,36 +86,47 @@ public class Parser<NT,T> {
                                 stateSets,
                                 scanItems.add(scanItem)),
                         (completeItem) -> predictAndComplete(
-                                complete(tup.right, completeItem, stateSets),
+                                complete(tup.right, completeItem, index, stateSets),
                                 index,
                                 stateSets,
                                 scanItems)));
-                
+        
     }
     
     private StateSet<NT,T> predict(
-            StateSet<NT,T> stateSet, NT nonTerminal, long index) {
+            StateSet<NT,T> stateSet, PredictItem<NT,T> item, long index) {
         
-        return grammar.rules.get(nonTerminal).match(
-                (unit) -> stateSet,
+        return grammar.rules.get(item.nextNonTerminal).match(
+                (unit) -> grammar.isNullable(item.nextNonTerminal) ?
+                        stateSet.add(item.shift()) :
+                        stateSet,
                 (rules) -> rules.sortedList().foldRight(
+                        grammar.isNullable(item.nextNonTerminal) ?
+                        stateSet.add(item.shift()) :
                         stateSet,
                         (rhs) -> (states) -> states.add(
-                                Item.item(nonTerminal, rhs.rhs, index))));
+                                Item.item(item.nextNonTerminal, rhs.rhs, index))));
         
     }
     
     private StateSet<NT,T> complete(
             StateSet<NT,T> stateSet,
             CompleteItem<NT,T> item,
+            long index,
             AATreeMap<Long,StateSet<NT,T>> stateSets) {
         
-        return stateSets.get(item.startIndex).match(
-                (unit) -> { throw new RuntimeException(); },
-                (previousStateSet) -> previousStateSet.predictItems(item.lhs)
+        return index == item.startIndex ?
+                stateSet.predictItems(item.lhs)
                 .sortedList().foldRight(
                         stateSet,
-                        (predictItem) -> (states) -> states.add(predictItem.shift())));
+                        (predictItem) -> (states) -> states.add(predictItem.shift())) :
+                stateSets.get(item.startIndex).match(
+                        (unit) -> { throw new RuntimeException(); },
+                        (previousStateSet) -> previousStateSet.predictItems(item.lhs)
+                        .sortedList().foldRight(
+                                stateSet,
+                                (predictItem) -> (states) ->
+                                        states.add(predictItem.shift())));
         
     }
     
