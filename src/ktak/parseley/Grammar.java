@@ -3,12 +3,12 @@ package ktak.parseley;
 import java.util.Comparator;
 
 import ktak.immutablejava.AATreeMap;
-import ktak.immutablejava.AATreeSet;
+import ktak.immutablejava.List;
 
 public class Grammar<NT,T> {
     
     protected final NT start;
-    protected final AATreeMap<NT,AATreeSet<RightHandSide<NT,T>>> rules;
+    protected final AATreeMap<NT,List<RightHandSide<NT,T>>> rules;
     protected final NullabilityDeterminer<NT,T> nullabilityDeterminer;
     protected final Comparator<RightHandSide<NT,T>> rhsCmp;
     protected final Comparator<NT> ntCmp;
@@ -25,7 +25,7 @@ public class Grammar<NT,T> {
     
     private Grammar(
             NT start,
-            AATreeMap<NT,AATreeSet<RightHandSide<NT,T>>> rules,
+            AATreeMap<NT,List<RightHandSide<NT,T>>> rules,
             NullabilityDeterminer<NT,T> nullabilityDeterminer,
             Comparator<RightHandSide<NT,T>> rhsCmp,
             Comparator<NT> ntCmp,
@@ -42,8 +42,8 @@ public class Grammar<NT,T> {
         return new Grammar<>(
                 start,
                 rules.insert(lhs, rules.get(lhs).match(
-                        (unit) -> AATreeSet.emptySet(rhsCmp).insert(rhs),
-                        (set) -> set.insert(rhs))),
+                        (unit) -> new List.Nil<RightHandSide<NT,T>>().cons(rhs),
+                        (list) -> list.cons(rhs))),
                 nullabilityDeterminer.addRule(lhs, rhs),
                 rhsCmp,
                 ntCmp,

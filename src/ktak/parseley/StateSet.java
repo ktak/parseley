@@ -14,8 +14,8 @@ class StateSet<NT,T> {
     private final Comparator<T> tCmp;
     private final ItemComparator<NT,T> itemCmp;
     protected final AATreeSet<Item<NT,T>> itemsInSet;
-    private final AATreeMap<NT,AATreeSet<PredictItem<NT,T>>> predictItems;
-    private final AATreeMap<NT,AATreeSet<CompleteItem<NT,T>>> completeItems;
+    private final AATreeMap<NT,List<PredictItem<NT,T>>> predictItems;
+    private final AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems;
     private final List<Item<NT,T>> frontQueue;
     private final List<Item<NT,T>> backQueue;
     
@@ -33,15 +33,15 @@ class StateSet<NT,T> {
     private StateSet(
             Comparator<NT> ntCmp, Comparator<T> tCmp, ItemComparator<NT,T> itemCmp,
             AATreeSet<Item<NT,T>> statesInSet,
-            AATreeMap<NT,AATreeSet<PredictItem<NT,T>>> predictStates,
-            AATreeMap<NT,AATreeSet<CompleteItem<NT,T>>> completeStates,
+            AATreeMap<NT,List<PredictItem<NT,T>>> predictItems,
+            AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems,
             List<Item<NT,T>> frontQueue, List<Item<NT,T>> backQueue) {
         this.ntCmp = ntCmp;
         this.tCmp = tCmp;
         this.itemCmp = itemCmp;
         this.itemsInSet = statesInSet;
-        this.predictItems = predictStates;
-        this.completeItems = completeStates;
+        this.predictItems = predictItems;
+        this.completeItems = completeItems;
         this.frontQueue = frontQueue;
         this.backQueue = backQueue;
     }
@@ -61,11 +61,10 @@ class StateSet<NT,T> {
         return item.match(
                 (predictItem) -> newStateSet(
                         newItemsInSet,
-                        mapSetInsert(
+                        mapListInsert(
                                 predictItems,
                                 predictItem.nextNonTerminal,
-                                predictItem,
-                                itemCmp.predictCmp),
+                                predictItem),
                         completeItems,
                         newBackQueue),
                 (scanItem) -> newStateSet(
@@ -76,19 +75,18 @@ class StateSet<NT,T> {
                 (completeItem) -> newStateSet(
                         newItemsInSet,
                         predictItems,
-                        mapSetInsert(
+                        mapListInsert(
                                 completeItems,
                                 completeItem.lhs,
-                                completeItem,
-                                itemCmp.completeCmp),
+                                completeItem),
                         newBackQueue));
         
     }
     
     private StateSet<NT,T> newStateSet(
             AATreeSet<Item<NT,T>> itemsInSet,
-            AATreeMap<NT,AATreeSet<PredictItem<NT,T>>> predictItems,
-            AATreeMap<NT,AATreeSet<CompleteItem<NT,T>>> completeItems,
+            AATreeMap<NT,List<PredictItem<NT,T>>> predictItems,
+            AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems,
             List<Item<NT,T>> backQueue) {
         
         return new StateSet<>(
@@ -98,17 +96,16 @@ class StateSet<NT,T> {
         
     }
     
-    private <SetElem> AATreeMap<NT,AATreeSet<SetElem>> mapSetInsert(
-            AATreeMap<NT,AATreeSet<SetElem>> map,
+    private <Elem> AATreeMap<NT,List<Elem>> mapListInsert(
+            AATreeMap<NT,List<Elem>> map,
             NT key,
-            SetElem element,
-            Comparator<SetElem> elemCmp) {
+            Elem element) {
         
         return map.insert(
                 key,
                 map.get(key).match(
-                        (unit) -> AATreeSet.emptySet(elemCmp).insert(element),
-                        (set) -> set.insert(element)));
+                        (unit) -> new List.Nil<Elem>().cons(element),
+                        (list) -> list.cons(element)));
         
     }
     
@@ -130,19 +127,19 @@ class StateSet<NT,T> {
         
     }
     
-    protected AATreeSet<CompleteItem<NT,T>> completeItems(NT lhs) {
+    protected List<CompleteItem<NT,T>> completeItems(NT lhs) {
         
         return completeItems.get(lhs).match(
-                (unit) -> AATreeSet.emptySet(itemCmp.completeCmp),
-                (set) -> set);
+                (unit) -> new List.Nil<>(),
+                (list) -> list);
         
     }
     
-    protected AATreeSet<PredictItem<NT,T>> predictItems(NT nextNonTerminal) {
+    protected List<PredictItem<NT,T>> predictItems(NT nextNonTerminal) {
         
         return predictItems.get(nextNonTerminal).match(
-                (unit) -> AATreeSet.emptySet(itemCmp.predictCmp),
-                (set) -> set);
+                (unit) -> new List.Nil<>(),
+                (list) -> list);
         
     }
     

@@ -29,7 +29,7 @@ public class ParseState<NT,T> {
         
         return chart.get(nextIndex-1).match(
                 (unit) -> { throw new RuntimeException(); },
-                (states) -> states.completeItems(parser.grammar.start).sortedList()
+                (states) -> states.completeItems(parser.grammar.start)
                     .foldRight(
                             false,
                             (item) -> (recognized) ->

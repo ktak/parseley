@@ -3,34 +3,28 @@ package ktak.parseley;
 import java.util.Comparator;
 
 import ktak.immutablejava.AATreeMap;
-import ktak.immutablejava.AATreeSet;
+import ktak.immutablejava.List;
 
 class ScanCandidates<NT,T> {
     
-    private final Comparator<ScanItem<NT,T>> cmp;
-    protected final AATreeMap<T,AATreeSet<ScanItem<NT,T>>> scanCandidates;
+    protected final AATreeMap<T,List<ScanItem<NT,T>>> scanCandidates;
     
-    protected ScanCandidates(Comparator<T> tCmp, Comparator<ScanItem<NT,T>> cmp) {
-        this.cmp = cmp;
+    protected ScanCandidates(Comparator<T> tCmp) {
         this.scanCandidates = AATreeMap.emptyMap(tCmp);
     }
     
-    private ScanCandidates(
-            Comparator<ScanItem<NT,T>> cmp,
-            AATreeMap<T,AATreeSet<ScanItem<NT,T>>> scanCandidates) {
-        this.cmp = cmp;
+    private ScanCandidates(AATreeMap<T,List<ScanItem<NT,T>>> scanCandidates) {
         this.scanCandidates = scanCandidates;
     }
     
     protected ScanCandidates<NT,T> add(ScanItem<NT,T> item) {
         
         return new ScanCandidates<>(
-                cmp,
                 scanCandidates.insert(
                         item.nextTerminal,
                         scanCandidates.get(item.nextTerminal).match(
-                                (unit) -> AATreeSet.emptySet(cmp).insert(item),
-                                (set) -> set.insert(item))));
+                                (unit) -> new List.Nil<ScanItem<NT,T>>().cons(item),
+                                (list) -> list.cons(item))));
         
     }
     

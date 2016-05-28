@@ -8,11 +8,9 @@ import ktak.immutablejava.Tuple;
 public class Parser<NT,T> {
     
     private static final Comparator<Long> longCmp = (l1, l2) -> l1.compareTo(l2);
-    private final ItemComparator<NT,T> itemCmp;
     protected final Grammar<NT,T> grammar;
     
     public Parser(Grammar<NT,T> grammar) {
-        this.itemCmp = new ItemComparator<NT,T>(grammar.ntCmp, grammar.tCmp);
         this.grammar = grammar;
     }
     
@@ -24,7 +22,7 @@ public class Parser<NT,T> {
                         initialStateSet(),
                         0,
                         chart,
-                        new ScanCandidates<>(grammar.tCmp, itemCmp.scanCmp));
+                        new ScanCandidates<>(grammar.tCmp));
         
         return new ParseState<>(
                 this,
@@ -45,7 +43,7 @@ public class Parser<NT,T> {
                         scan(nextTerminal, scanCandidates, chart),
                         index,
                         chart,
-                        new ScanCandidates<>(grammar.tCmp, itemCmp.scanCmp));
+                        new ScanCandidates<>(grammar.tCmp));
         
         return new ParseState<>(
                 this,
@@ -59,7 +57,7 @@ public class Parser<NT,T> {
         
         return grammar.rules.get(grammar.start).match(
                 (unit) -> new StateSet<>(grammar.ntCmp, grammar.tCmp),
-                (rules) -> rules.sortedList().foldRight(
+                (rules) -> rules.foldRight(
                         new StateSet<>(grammar.ntCmp, grammar.tCmp),
                         (rhs) -> (stateSet) ->
                                 stateSet.add(Item.item(grammar.start, rhs.rhs, 0L))));
@@ -100,7 +98,7 @@ public class Parser<NT,T> {
                 (unit) -> grammar.isNullable(item.nextNonTerminal) ?
                         stateSet.add(item.shift()) :
                         stateSet,
-                (rules) -> rules.sortedList().foldRight(
+                (rules) -> rules.foldRight(
                         grammar.isNullable(item.nextNonTerminal) ?
                         stateSet.add(item.shift()) :
                         stateSet,
@@ -117,13 +115,13 @@ public class Parser<NT,T> {
         
         return index == item.startIndex ?
                 stateSet.predictItems(item.lhs)
-                .sortedList().foldRight(
+                .foldRight(
                         stateSet,
                         (predictItem) -> (states) -> states.add(predictItem.shift())) :
                 stateSets.get(item.startIndex).match(
                         (unit) -> { throw new RuntimeException(); },
                         (previousStateSet) -> previousStateSet.predictItems(item.lhs)
-                        .sortedList().foldRight(
+                        .foldRight(
                                 stateSet,
                                 (predictItem) -> (states) ->
                                         states.add(predictItem.shift())));
@@ -137,7 +135,7 @@ public class Parser<NT,T> {
         
         return scanItems.scanCandidates.get(terminal).match(
                 (unit) -> new StateSet<>(grammar.ntCmp, grammar.tCmp),
-                (set) -> set.sortedList().foldRight(
+                (list) -> list.foldRight(
                         new StateSet<>(grammar.ntCmp, grammar.tCmp),
                         (scanItem) -> (states) -> states.add(scanItem.shift())));
         
