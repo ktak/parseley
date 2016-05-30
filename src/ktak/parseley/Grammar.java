@@ -4,11 +4,12 @@ import java.util.Comparator;
 
 import ktak.immutablejava.AATreeMap;
 import ktak.immutablejava.List;
+import ktak.immutablejava.Tuple;
 
 public class Grammar<NT,T> {
     
     protected final NT start;
-    protected final AATreeMap<NT,List<RightHandSide<NT,T>>> rules;
+    protected final AATreeMap<NT,List<Tuple<Long,RightHandSide<NT,T>>>> rules;
     protected final NullabilityDeterminer<NT,T> nullabilityDeterminer;
     protected final Comparator<RightHandSide<NT,T>> rhsCmp;
     protected final Comparator<NT> ntCmp;
@@ -25,7 +26,7 @@ public class Grammar<NT,T> {
     
     private Grammar(
             NT start,
-            AATreeMap<NT,List<RightHandSide<NT,T>>> rules,
+            AATreeMap<NT,List<Tuple<Long,RightHandSide<NT,T>>>> rules,
             NullabilityDeterminer<NT,T> nullabilityDeterminer,
             Comparator<RightHandSide<NT,T>> rhsCmp,
             Comparator<NT> ntCmp,
@@ -42,8 +43,9 @@ public class Grammar<NT,T> {
         return new Grammar<>(
                 start,
                 rules.insert(lhs, rules.get(lhs).match(
-                        (unit) -> new List.Nil<RightHandSide<NT,T>>().cons(rhs),
-                        (list) -> list.cons(rhs))),
+                        (unit) -> new List.Nil<Tuple<Long,RightHandSide<NT,T>>>()
+                                .cons(Tuple.create(0L, rhs)),
+                        (list) -> list.cons(Tuple.create(list.length(), rhs)))),
                 nullabilityDeterminer.addRule(lhs, rhs),
                 rhsCmp,
                 ntCmp,

@@ -12,7 +12,7 @@ class StateSet<NT,T> {
     
     private final Comparator<NT> ntCmp;
     private final Comparator<T> tCmp;
-    private final ItemComparator<NT,T> itemCmp;
+    private final Comparator<Item<NT,T>> itemCmp;
     protected final AATreeSet<Item<NT,T>> itemsInSet;
     private final AATreeMap<NT,List<PredictItem<NT,T>>> predictItems;
     private final AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems;
@@ -22,7 +22,7 @@ class StateSet<NT,T> {
     protected StateSet(Comparator<NT> ntCmp, Comparator<T> tCmp) {
         this.ntCmp = ntCmp;
         this.tCmp = tCmp;
-        this.itemCmp = new ItemComparator<NT,T>(ntCmp, tCmp);
+        this.itemCmp = (i1, i2) -> Item.compare(ntCmp, i1, i2);
         this.itemsInSet = AATreeSet.emptySet(itemCmp);
         this.predictItems = AATreeMap.emptyMap(ntCmp);
         this.completeItems = AATreeMap.emptyMap(ntCmp);
@@ -31,7 +31,8 @@ class StateSet<NT,T> {
     }
     
     private StateSet(
-            Comparator<NT> ntCmp, Comparator<T> tCmp, ItemComparator<NT,T> itemCmp,
+            Comparator<NT> ntCmp, Comparator<T> tCmp,
+            Comparator<Item<NT,T>> itemCmp,
             AATreeSet<Item<NT,T>> statesInSet,
             AATreeMap<NT,List<PredictItem<NT,T>>> predictItems,
             AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems,
@@ -77,7 +78,7 @@ class StateSet<NT,T> {
                         predictItems,
                         mapListInsert(
                                 completeItems,
-                                completeItem.lhs,
+                                completeItem.leftHandSide,
                                 completeItem),
                         newBackQueue));
         

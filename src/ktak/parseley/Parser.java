@@ -59,8 +59,9 @@ public class Parser<NT,T> {
                 (unit) -> new StateSet<>(grammar.ntCmp, grammar.tCmp),
                 (rules) -> rules.foldRight(
                         new StateSet<>(grammar.ntCmp, grammar.tCmp),
-                        (rhs) -> (stateSet) ->
-                                stateSet.add(Item.item(grammar.start, rhs.rhs, 0L))));
+                        (rule) -> (stateSet) ->
+                                stateSet.add(Item.initialItem(
+                                        grammar.start, rule.left, rule.right.rhs, 0L))));
         
     }
     
@@ -102,8 +103,12 @@ public class Parser<NT,T> {
                         grammar.isNullable(item.nextNonTerminal) ?
                         stateSet.add(item.shift()) :
                         stateSet,
-                        (rhs) -> (states) -> states.add(
-                                Item.item(item.nextNonTerminal, rhs.rhs, index))));
+                        (rule) -> (states) -> states.add(
+                                Item.initialItem(
+                                        item.nextNonTerminal,
+                                        rule.left,
+                                        rule.right.rhs,
+                                        index))));
         
     }
     
@@ -114,17 +119,17 @@ public class Parser<NT,T> {
             AATreeMap<Long,StateSet<NT,T>> stateSets) {
         
         return index == item.startIndex ?
-                stateSet.predictItems(item.lhs)
+                stateSet.predictItems(item.leftHandSide)
                 .foldRight(
                         stateSet,
                         (predictItem) -> (states) -> states.add(predictItem.shift())) :
                 stateSets.get(item.startIndex).match(
                         (unit) -> { throw new RuntimeException(); },
-                        (previousStateSet) -> previousStateSet.predictItems(item.lhs)
-                        .foldRight(
-                                stateSet,
-                                (predictItem) -> (states) ->
-                                        states.add(predictItem.shift())));
+                        (previousStateSet) -> previousStateSet.predictItems(item.leftHandSide)
+                                .foldRight(
+                                        stateSet,
+                                        (predictItem) -> (states) ->
+                                                states.add(predictItem.shift())));
         
     }
     
