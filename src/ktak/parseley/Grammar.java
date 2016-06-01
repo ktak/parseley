@@ -6,10 +6,10 @@ import ktak.immutablejava.AATreeMap;
 import ktak.immutablejava.List;
 import ktak.immutablejava.Tuple;
 
-public class Grammar<NT,T> {
+public class Grammar<NT,T,R> {
     
     protected final NT start;
-    protected final AATreeMap<NT,List<Tuple<Long,RightHandSide<NT,T>>>> rules;
+    protected final AATreeMap<NT,List<Tuple<Long,Rule<NT,T,R,?>>>> rules;
     protected final NullabilityDeterminer<NT,T> nullabilityDeterminer;
     protected final Comparator<RightHandSide<NT,T>> rhsCmp;
     protected final Comparator<NT> ntCmp;
@@ -26,7 +26,7 @@ public class Grammar<NT,T> {
     
     private Grammar(
             NT start,
-            AATreeMap<NT,List<Tuple<Long,RightHandSide<NT,T>>>> rules,
+            AATreeMap<NT,List<Tuple<Long,Rule<NT,T,R,?>>>> rules,
             NullabilityDeterminer<NT,T> nullabilityDeterminer,
             Comparator<RightHandSide<NT,T>> rhsCmp,
             Comparator<NT> ntCmp,
@@ -39,14 +39,14 @@ public class Grammar<NT,T> {
         this.tCmp = tCmp;
     }
     
-    public Grammar<NT,T> addRule(NT lhs, RightHandSide<NT,T> rhs) {
+    public Grammar<NT,T,R> addRule(NT lhs, Rule<NT,T,R,?> rule) {
         return new Grammar<>(
                 start,
                 rules.insert(lhs, rules.get(lhs).match(
-                        (unit) -> new List.Nil<Tuple<Long,RightHandSide<NT,T>>>()
-                                .cons(Tuple.create(0L, rhs)),
-                        (list) -> list.cons(Tuple.create(list.length(), rhs)))),
-                nullabilityDeterminer.addRule(lhs, rhs),
+                        (unit) -> new List.Nil<Tuple<Long,Rule<NT,T,R,?>>>()
+                                .cons(Tuple.create(0L, rule)),
+                        (list) -> list.cons(Tuple.create(list.length(), rule)))),
+                nullabilityDeterminer.addRule(lhs, rule.symbols),
                 rhsCmp,
                 ntCmp,
                 tCmp);

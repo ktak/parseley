@@ -8,16 +8,16 @@ import ktak.immutablejava.List;
 import ktak.immutablejava.Option;
 import ktak.immutablejava.Tuple;
 
-class StateSet<NT,T> {
+class StateSet<NT,T,R> {
     
     private final Comparator<NT> ntCmp;
     private final Comparator<T> tCmp;
-    private final Comparator<Item<NT,T>> itemCmp;
-    protected final AATreeSet<Item<NT,T>> itemsInSet;
-    private final AATreeMap<NT,List<PredictItem<NT,T>>> predictItems;
-    private final AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems;
-    private final List<Item<NT,T>> frontQueue;
-    private final List<Item<NT,T>> backQueue;
+    private final Comparator<Item<NT,T,R>> itemCmp;
+    protected final AATreeSet<Item<NT,T,R>> itemsInSet;
+    private final AATreeMap<NT,List<PredictItem<NT,T,R>>> predictItems;
+    private final AATreeMap<NT,List<CompleteItem<NT,T,R>>> completeItems;
+    private final List<Item<NT,T,R>> frontQueue;
+    private final List<Item<NT,T,R>> backQueue;
     
     protected StateSet(Comparator<NT> ntCmp, Comparator<T> tCmp) {
         this.ntCmp = ntCmp;
@@ -32,11 +32,11 @@ class StateSet<NT,T> {
     
     private StateSet(
             Comparator<NT> ntCmp, Comparator<T> tCmp,
-            Comparator<Item<NT,T>> itemCmp,
-            AATreeSet<Item<NT,T>> statesInSet,
-            AATreeMap<NT,List<PredictItem<NT,T>>> predictItems,
-            AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems,
-            List<Item<NT,T>> frontQueue, List<Item<NT,T>> backQueue) {
+            Comparator<Item<NT,T,R>> itemCmp,
+            AATreeSet<Item<NT,T,R>> statesInSet,
+            AATreeMap<NT,List<PredictItem<NT,T,R>>> predictItems,
+            AATreeMap<NT,List<CompleteItem<NT,T,R>>> completeItems,
+            List<Item<NT,T,R>> frontQueue, List<Item<NT,T,R>> backQueue) {
         this.ntCmp = ntCmp;
         this.tCmp = tCmp;
         this.itemCmp = itemCmp;
@@ -47,7 +47,7 @@ class StateSet<NT,T> {
         this.backQueue = backQueue;
     }
     
-    protected StateSet<NT,T> add(Item<NT,T> item) {
+    protected StateSet<NT,T,R> add(Item<NT,T,R> item) {
         
         return itemsInSet.contains(item) ?
                 this :
@@ -55,10 +55,10 @@ class StateSet<NT,T> {
         
     }
     
-    private StateSet<NT,T> addNewItem(Item<NT,T> item) {
+    private StateSet<NT,T,R> addNewItem(Item<NT,T,R> item) {
         
-        AATreeSet<Item<NT,T>> newItemsInSet = itemsInSet.insert(item);
-        List<Item<NT,T>> newBackQueue = backQueue.cons(item);
+        AATreeSet<Item<NT,T,R>> newItemsInSet = itemsInSet.insert(item);
+        List<Item<NT,T,R>> newBackQueue = backQueue.cons(item);
         return item.match(
                 (predictItem) -> newStateSet(
                         newItemsInSet,
@@ -84,11 +84,11 @@ class StateSet<NT,T> {
         
     }
     
-    private StateSet<NT,T> newStateSet(
-            AATreeSet<Item<NT,T>> itemsInSet,
-            AATreeMap<NT,List<PredictItem<NT,T>>> predictItems,
-            AATreeMap<NT,List<CompleteItem<NT,T>>> completeItems,
-            List<Item<NT,T>> backQueue) {
+    private StateSet<NT,T,R> newStateSet(
+            AATreeSet<Item<NT,T,R>> itemsInSet,
+            AATreeMap<NT,List<PredictItem<NT,T,R>>> predictItems,
+            AATreeMap<NT,List<CompleteItem<NT,T,R>>> completeItems,
+            List<Item<NT,T,R>> backQueue) {
         
         return new StateSet<>(
                 ntCmp, tCmp, itemCmp,
@@ -110,7 +110,7 @@ class StateSet<NT,T> {
         
     }
     
-    protected Option<Tuple<Item<NT,T>,StateSet<NT,T>>> nextItem() {
+    protected Option<Tuple<Item<NT,T,R>,StateSet<NT,T,R>>> nextItem() {
         
         return frontQueue.match(
                 (unit1) -> backQueue.reverse().match(
@@ -128,7 +128,7 @@ class StateSet<NT,T> {
         
     }
     
-    protected List<CompleteItem<NT,T>> completeItems(NT lhs) {
+    protected List<CompleteItem<NT,T,R>> completeItems(NT lhs) {
         
         return completeItems.get(lhs).match(
                 (unit) -> new List.Nil<>(),
@@ -136,7 +136,7 @@ class StateSet<NT,T> {
         
     }
     
-    protected List<PredictItem<NT,T>> predictItems(NT nextNonTerminal) {
+    protected List<PredictItem<NT,T,R>> predictItems(NT nextNonTerminal) {
         
         return predictItems.get(nextNonTerminal).match(
                 (unit) -> new List.Nil<>(),

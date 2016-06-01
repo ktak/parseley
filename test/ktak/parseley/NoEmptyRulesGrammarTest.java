@@ -10,27 +10,42 @@ import org.junit.Test;
 public class NoEmptyRulesGrammarTest {
     
     private static final Comparator<String> strCmp = (s1, s2) -> s1.compareTo(s2);
-    private static final Parser<String,String> expressionParser =
-            new Parser<String,String>(createExpressionGrammar());
+    private static final Parser<String,String,String> expressionParser =
+            new Parser<String,String,String>(createExpressionGrammar());
     
-    private static Grammar<String,String> createExpressionGrammar() {
+    private static Grammar<String,String,String> createExpressionGrammar() {
         
-        return new Grammar<String,String>("Sum", strCmp, strCmp)
-                .addRule("Sum", new RightHandSide<String,String>()
-                        .thenNonTerminal("Sum").thenTerminal("+").thenNonTerminal("Product"))
-                .addRule("Sum", new RightHandSide<String,String>().thenNonTerminal("Product"))
-                .addRule("Product", new RightHandSide<String,String>()
-                        .thenNonTerminal("Product").thenTerminal("*").thenNonTerminal("Factor"))
-                .addRule("Product", new RightHandSide<String,String>().thenNonTerminal("Factor"))
-                .addRule("Factor", new RightHandSide<String,String>()
-                        .thenTerminal("(").thenNonTerminal("Sum").thenTerminal(")"))
-                .addRule("Factor", new RightHandSide<String,String>().thenTerminal("N"));
+        return new Grammar<String,String,String>("Sum", strCmp, strCmp)
+                .addRule("Sum", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependNonTerminal("Product")
+                        .prependTerminal("+")
+                        .prependNonTerminal("Sum")))
+                .addRule("Sum", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependNonTerminal("Product")))
+                .addRule("Product", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependNonTerminal("Factor")
+                        .prependTerminal("*")
+                        .prependNonTerminal("Product")))
+                .addRule("Product", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependNonTerminal("Factor")))
+                .addRule("Factor", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependTerminal(")")
+                        .prependNonTerminal("Sum")
+                        .prependTerminal("(")))
+                .addRule("Factor", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependTerminal("N")));
         
     }
     
     private final boolean recognizes(List<String> input) {
         
-        ParseState<String,String> parseState = expressionParser.initialParseState();
+        ParseState<String,String,String> parseState = expressionParser.initialParseState();
         for (String str : input) {
             parseState = parseState.parseNextTerminal(str);
         }

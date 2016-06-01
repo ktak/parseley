@@ -2,11 +2,9 @@ package ktak.parseley;
 
 import java.util.Comparator;
 
-import ktak.immutablejava.Either;
 import ktak.immutablejava.Function;
-import ktak.immutablejava.List;
 
-abstract class Item<NT,T> {
+abstract class Item<NT,T,R> {
     
     // these four fields uniquely determine an item
     protected final NT leftHandSide;
@@ -21,38 +19,34 @@ abstract class Item<NT,T> {
         this.startIndex = startIndex;
     }
     
-    protected abstract <R> R match(
-            Function<PredictItem<NT,T>,R> predictCase,
-            Function<ScanItem<NT,T>,R> scanCase,
-            Function<CompleteItem<NT,T>,R> completeCase);
+    protected abstract <X> X match(
+            Function<PredictItem<NT,T,R>,X> predictCase,
+            Function<ScanItem<NT,T,R>,X> scanCase,
+            Function<CompleteItem<NT,T,R>,X> completeCase);
     
-    protected static <NT,T> Item<NT,T> initialItem(
-            NT lhs, long ruleIndex, List<Either<NT,T>> rhs, long startIndex) {
+    protected static <NT,T,R> Item<NT,T,R> initialItem(
+            NT lhs, long ruleIndex, RuleSymbols<NT,T,R,?> symbols, long startIndex) {
         
-        return item(lhs, ruleIndex, 0, new List.Nil<>(), rhs, startIndex);
+        return item(lhs, ruleIndex, 0, symbols, startIndex);
         
     }
     
-    protected static <NT,T> Item<NT,T> item(
-            NT lhs, long ruleIndex, int shifts,
-            List<Either<NT,T>> completedReversed, List<Either<NT,T>> rhs,
-            long startIndex) {
+    protected static <NT,T,R> Item<NT,T,R> item(
+            NT lhs, long ruleIndex, int shifts, RuleSymbols<NT,T,R,?> symbols, long startIndex) {
         
-        return rhs.match(
-                (unit) -> new CompleteItem<>(lhs, ruleIndex, shifts,
-                        completedReversed, startIndex),
-                (cons) -> cons.left.match(
-                        (nonTerminal) -> new PredictItem<>(
-                                lhs, ruleIndex, shifts,
-                                completedReversed, nonTerminal, cons.right, startIndex),
-                        (terminal) -> new ScanItem<>(
-                                lhs, ruleIndex, shifts,
-                                completedReversed, terminal, cons.right, startIndex)));
+        return symbols.match(
+                (ntSym) -> new PredictItem<>(
+                        lhs, ruleIndex, shifts, ntSym.nonTerminal, ntSym.next, startIndex),
+                (tSym) -> new ScanItem<>(
+                        lhs, ruleIndex, shifts, tSym.terminal, tSym.next, startIndex),
+                (endSym) -> new CompleteItem<>(
+                        lhs, ruleIndex, shifts, startIndex));
+        
         
     }
     
-    protected static <NT,T> int compare(
-            Comparator<NT> ntCmp, Item<NT,T> i1, Item<NT,T> i2) {
+    protected static <NT,T,R> int compare(
+            Comparator<NT> ntCmp, Item<NT,T,R> i1, Item<NT,T,R> i2) {
         
         int lhsCmpResult = ntCmp.compare(i1.leftHandSide, i2.leftHandSide);
         if (lhsCmpResult != 0)

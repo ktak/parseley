@@ -5,19 +5,19 @@ import java.util.Comparator;
 import ktak.immutablejava.AATreeMap;
 import ktak.immutablejava.Tuple;
 
-public class Parser<NT,T> {
+public class Parser<NT,T,R> {
     
     private static final Comparator<Long> longCmp = (l1, l2) -> l1.compareTo(l2);
-    protected final Grammar<NT,T> grammar;
+    protected final Grammar<NT,T,R> grammar;
     
-    public Parser(Grammar<NT,T> grammar) {
+    public Parser(Grammar<NT,T,R> grammar) {
         this.grammar = grammar;
     }
     
-    public ParseState<NT,T> initialParseState() {
+    public ParseState<NT,T,R> initialParseState() {
         
-        AATreeMap<Long,StateSet<NT,T>> chart = AATreeMap.emptyMap(longCmp);
-        Tuple<StateSet<NT,T>,ScanCandidates<NT,T>> init =
+        AATreeMap<Long,StateSet<NT,T,R>> chart = AATreeMap.emptyMap(longCmp);
+        Tuple<StateSet<NT,T,R>,ScanCandidates<NT,T,R>> init =
                 predictAndComplete(
                         initialStateSet(),
                         0,
@@ -32,13 +32,13 @@ public class Parser<NT,T> {
         
     }
     
-    protected ParseState<NT,T> parseNextTerminal(
+    protected ParseState<NT,T,R> parseNextTerminal(
             T nextTerminal,
             long index,
-            ScanCandidates<NT,T> scanCandidates,
-            AATreeMap<Long,StateSet<NT,T>> chart) {
+            ScanCandidates<NT,T,R> scanCandidates,
+            AATreeMap<Long,StateSet<NT,T,R>> chart) {
         
-        Tuple<StateSet<NT,T>,ScanCandidates<NT,T>> next =
+        Tuple<StateSet<NT,T,R>,ScanCandidates<NT,T,R>> next =
                 predictAndComplete(
                         scan(nextTerminal, scanCandidates, chart),
                         index,
@@ -53,7 +53,7 @@ public class Parser<NT,T> {
         
     }
     
-    private StateSet<NT,T> initialStateSet() {
+    private StateSet<NT,T,R> initialStateSet() {
         
         return grammar.rules.get(grammar.start).match(
                 (unit) -> new StateSet<>(grammar.ntCmp, grammar.tCmp),
@@ -61,15 +61,15 @@ public class Parser<NT,T> {
                         new StateSet<>(grammar.ntCmp, grammar.tCmp),
                         (rule) -> (stateSet) ->
                                 stateSet.add(Item.initialItem(
-                                        grammar.start, rule.left, rule.right.rhs, 0L))));
+                                        grammar.start, rule.left, rule.right.symbols, 0L))));
         
     }
     
-    private Tuple<StateSet<NT,T>,ScanCandidates<NT,T>> predictAndComplete(
-            StateSet<NT,T> stateSet,
+    private Tuple<StateSet<NT,T,R>,ScanCandidates<NT,T,R>> predictAndComplete(
+            StateSet<NT,T,R> stateSet,
             long index,
-            AATreeMap<Long,StateSet<NT,T>> stateSets,
-            ScanCandidates<NT,T> scanItems) {
+            AATreeMap<Long,StateSet<NT,T,R>> stateSets,
+            ScanCandidates<NT,T,R> scanItems) {
         
         return stateSet.nextItem().match(
                 (unit) -> Tuple.create(stateSet, scanItems),
@@ -92,8 +92,8 @@ public class Parser<NT,T> {
         
     }
     
-    private StateSet<NT,T> predict(
-            StateSet<NT,T> stateSet, PredictItem<NT,T> item, long index) {
+    private StateSet<NT,T,R> predict(
+            StateSet<NT,T,R> stateSet, PredictItem<NT,T,R> item, long index) {
         
         return grammar.rules.get(item.nextNonTerminal).match(
                 (unit) -> grammar.isNullable(item.nextNonTerminal) ?
@@ -107,16 +107,16 @@ public class Parser<NT,T> {
                                 Item.initialItem(
                                         item.nextNonTerminal,
                                         rule.left,
-                                        rule.right.rhs,
+                                        rule.right.symbols,
                                         index))));
         
     }
     
-    private StateSet<NT,T> complete(
-            StateSet<NT,T> stateSet,
-            CompleteItem<NT,T> item,
+    private StateSet<NT,T,R> complete(
+            StateSet<NT,T,R> stateSet,
+            CompleteItem<NT,T,R> item,
             long index,
-            AATreeMap<Long,StateSet<NT,T>> stateSets) {
+            AATreeMap<Long,StateSet<NT,T,R>> stateSets) {
         
         return index == item.startIndex ?
                 stateSet.predictItems(item.leftHandSide)
@@ -133,10 +133,10 @@ public class Parser<NT,T> {
         
     }
     
-    private StateSet<NT,T> scan(
+    private StateSet<NT,T,R> scan(
             T terminal,
-            ScanCandidates<NT,T> scanItems,
-            AATreeMap<Long,StateSet<NT,T>> stateSets) {
+            ScanCandidates<NT,T,R> scanItems,
+            AATreeMap<Long,StateSet<NT,T,R>> stateSets) {
         
         return scanItems.scanCandidates.get(terminal).match(
                 (unit) -> new StateSet<>(grammar.ntCmp, grammar.tCmp),

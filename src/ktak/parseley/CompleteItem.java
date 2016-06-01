@@ -1,25 +1,19 @@
 package ktak.parseley;
 
-import ktak.immutablejava.Either;
 import ktak.immutablejava.Function;
-import ktak.immutablejava.List;
 
-class CompleteItem<NT,T> extends Item<NT,T> {
-    
-    protected final List<Either<NT,T>> completedReversed;
+class CompleteItem<NT,T,R> extends Item<NT,T,R> {
     
     protected CompleteItem(
-            NT lhs, long ruleIndex, int shifts,
-            List<Either<NT,T>> completedReversed, long startIndex) {
+            NT lhs, long ruleIndex, int shifts, long startIndex) {
         super(lhs, ruleIndex, shifts, startIndex);
-        this.completedReversed = completedReversed;
     }
     
     @Override
-    protected <R> R match(
-            Function<PredictItem<NT, T>, R> predictCase,
-            Function<ScanItem<NT, T>, R> scanCase,
-            Function<CompleteItem<NT, T>, R> completeCase) {
+    protected <X> X match(
+            Function<PredictItem<NT,T,R>,X> predictCase,
+            Function<ScanItem<NT,T,R>,X> scanCase,
+            Function<CompleteItem<NT,T,R>,X> completeCase) {
         return completeCase.apply(this);
     }
     

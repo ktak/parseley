@@ -10,29 +10,33 @@ import org.junit.Test;
 public class EmptyRulesGrammarTest {
     
     private static final Comparator<String> strCmp = (s1, s2) -> s1.compareTo(s2);
-    private static final Parser<String,String> complexGrammarParser =
-            new Parser<String,String>(createComplexGrammar());
+    private static final Parser<String,String,String> complexGrammarParser =
+            new Parser<String,String,String>(createComplexGrammar());
     
     /*
      * S => A | a
      * A => epsilon | SS
      */
-    private static Grammar<String,String> createComplexGrammar() {
-        
-        return new Grammar<String,String>("S", strCmp, strCmp)
-                .addRule("S", new RightHandSide<String,String>()
-                        .thenNonTerminal("A"))
-                .addRule("S", new RightHandSide<String,String>()
-                        .thenTerminal("a"))
-                .addRule("A", new RightHandSide<String,String>())
-                .addRule("A", new RightHandSide<String,String>()
-                        .thenNonTerminal("S").thenNonTerminal("S"));
+    private static Grammar<String,String,String> createComplexGrammar() {
+        return new Grammar<String,String,String>("S", strCmp, strCmp)
+                .addRule("S", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependNonTerminal("A")))
+                .addRule("S", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependTerminal("a")))
+                .addRule("A", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)))
+                .addRule("A", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependNonTerminal("S")
+                        .prependNonTerminal("S")));
         
     }
     
     private final boolean recognizes(List<String> input) {
         
-        ParseState<String,String> parseState = complexGrammarParser.initialParseState();
+        ParseState<String,String,String> parseState = complexGrammarParser.initialParseState();
         for (String str : input) {
             parseState = parseState.parseNextTerminal(str);
         }

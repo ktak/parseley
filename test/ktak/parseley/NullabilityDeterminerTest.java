@@ -20,39 +20,49 @@ public class NullabilityDeterminerTest {
         Assert.assertFalse(determiner.isNullable("C"));
         Assert.assertFalse(determiner.isNullable("D"));
         
-        determiner = determiner.addRule("A", new RightHandSide<String,String>());
+        determiner = determiner.addRule(
+                "A",
+                RuleSymbols.empty(String.class, String.class, String.class));
         
         Assert.assertTrue(determiner.isNullable("A"));
         Assert.assertFalse(determiner.isNullable("B"));
         Assert.assertFalse(determiner.isNullable("C"));
         Assert.assertFalse(determiner.isNullable("D"));
         
-        determiner = determiner.addRule("B",
-                new RightHandSide<String,String>()
-                .thenNonTerminal("C").thenNonTerminal("D"));
+        determiner = determiner.addRule(
+                "B",
+                RuleSymbols.empty(String.class, String.class, String.class)
+                .prependNonTerminal("D")
+                .prependNonTerminal("C"));
         
         Assert.assertTrue(determiner.isNullable("A"));
         Assert.assertFalse(determiner.isNullable("B"));
         Assert.assertFalse(determiner.isNullable("C"));
         Assert.assertFalse(determiner.isNullable("D"));
         
-        determiner = determiner.addRule("C",
-                new RightHandSide<String,String>().thenTerminal("t"));
+        determiner = determiner.addRule(
+                "C",
+                RuleSymbols.empty(String.class, String.class, String.class)
+                .prependTerminal("t"));
         
         Assert.assertTrue(determiner.isNullable("A"));
         Assert.assertFalse(determiner.isNullable("B"));
         Assert.assertFalse(determiner.isNullable("C"));
         Assert.assertFalse(determiner.isNullable("D"));
         
-        determiner = determiner.addRule("C", new RightHandSide<String,String>());
+        determiner = determiner.addRule(
+                "C",
+                RuleSymbols.empty(String.class, String.class, String.class));
         
         Assert.assertTrue(determiner.isNullable("A"));
         Assert.assertFalse(determiner.isNullable("B"));
         Assert.assertTrue(determiner.isNullable("C"));
         Assert.assertFalse(determiner.isNullable("D"));
         
-        determiner = determiner.addRule("D",
-                new RightHandSide<String,String>().thenNonTerminal("C"));
+        determiner = determiner.addRule(
+                "D",
+                RuleSymbols.empty(String.class, String.class, String.class)
+                .prependNonTerminal("C"));
         
         Assert.assertTrue(determiner.isNullable("A"));
         Assert.assertTrue(determiner.isNullable("B"));

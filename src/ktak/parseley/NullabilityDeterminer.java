@@ -36,13 +36,14 @@ class NullabilityDeterminer<NT,T> {
         return nullableNonTerminals.contains(nonTerminal);
     }
     
-    protected NullabilityDeterminer<NT,T> addRule(NT lhs, RightHandSide<NT,T> rhs) {
+    protected NullabilityDeterminer<NT,T> addRule(NT lhs, RuleSymbols<NT,T,?,?> symbols) {
         
         return nullableNonTerminals.contains(lhs) ?
                 this :
-                rhs.rhs.match(
-                        (unit) -> addEmptyRule(lhs),
-                        (cons) -> addNonEmptyRule(lhs, rhs));
+                symbols.match(
+                        (ntSym) -> addNonEmptyRule(lhs, symbols),
+                        (tSym) -> addNonEmptyRule(lhs, symbols),
+                        (endSym) -> addEmptyRule(lhs));
         
     }
     
@@ -104,9 +105,9 @@ class NullabilityDeterminer<NT,T> {
         
     }
     
-    private NullabilityDeterminer<NT,T> addNonEmptyRule(NT lhs, RightHandSide<NT,T> rhs) {
+    private NullabilityDeterminer<NT,T> addNonEmptyRule(NT lhs, RuleSymbols<NT,T,?,?> symbols) {
         
-        return dependencySet(rhs).match(
+        return dependencySet(symbols).match(
                 (none) -> this,
                 (set) -> set.size() == 0 ?
                         addEmptyRule(lhs) :
@@ -125,18 +126,17 @@ class NullabilityDeterminer<NT,T> {
      * terminals, this rule cannot contribute to its left hand side being
      * nullable
      */
-    private Option<AATreeSet<NT>> dependencySet(RightHandSide<NT,T> rhs) {
+    private Option<AATreeSet<NT>> dependencySet(RuleSymbols<NT,T,?,?> symbols) {
         
-        return rhs.rhs.foldRight(
-                Option.some(AATreeSet.emptySet(cmp)),
-                (either) -> (opt) -> opt.match(
+        return symbols.match(
+                (ntSym) -> dependencySet(ntSym.next).match(
                         (none) -> none,
-                        (set) -> either.match(
-                                (nonTerminal) -> Option.some(
-                                        nullableNonTerminals.contains(nonTerminal) ?
-                                                set :
-                                                set.insert(nonTerminal)),
-                                (terminal) -> Option.none())));
+                        (set) -> Option.some(
+                                nullableNonTerminals.contains(ntSym.nonTerminal) ?
+                                        set :
+                                        set.insert(ntSym.nonTerminal))),
+                (tSym) -> Option.none(),
+                (endSym) -> Option.some(AATreeSet.emptySet(cmp)));
         
     }
     

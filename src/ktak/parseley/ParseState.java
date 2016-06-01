@@ -2,25 +2,25 @@ package ktak.parseley;
 
 import ktak.immutablejava.AATreeMap;
 
-public class ParseState<NT,T> {
+public class ParseState<NT,T,R> {
     
-    private final Parser<NT,T> parser;
+    private final Parser<NT,T,R> parser;
     private final long nextIndex;
-    private final ScanCandidates<NT,T> scanCandidates;
-    private final AATreeMap<Long,StateSet<NT,T>> chart;
+    private final ScanCandidates<NT,T,R> scanCandidates;
+    private final AATreeMap<Long,StateSet<NT,T,R>> chart;
     
     protected ParseState(
-            Parser<NT,T> parser,
+            Parser<NT,T,R> parser,
             long nextIndex,
-            ScanCandidates<NT,T> scanCandidates,
-            AATreeMap<Long,StateSet<NT,T>> chart) {
+            ScanCandidates<NT,T,R> scanCandidates,
+            AATreeMap<Long,StateSet<NT,T,R>> chart) {
         this.parser = parser;
         this.nextIndex = nextIndex;
         this.scanCandidates = scanCandidates;
         this.chart = chart;
     }
     
-    public ParseState<NT,T> parseNextTerminal(T nextTerminal) {
+    public ParseState<NT,T,R> parseNextTerminal(T nextTerminal) {
         return parser.parseNextTerminal(
                 nextTerminal, nextIndex, scanCandidates, chart);
     }
