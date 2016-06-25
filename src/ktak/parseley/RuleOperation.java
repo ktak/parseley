@@ -15,9 +15,9 @@ abstract class RuleOperation<NT,T,R,Type extends RuleType<NT,T,R,?>> {
     protected static class NonTerminalOperation<NT,T,R,Next extends RuleType<NT,T,R,?>>
     extends RuleOperation<NT,T,R,NonTerminal<NT,T,R,Next>> {
         
-        protected final Function<R,Next> operation;
+        protected final Function<R,RuleOperation<NT,T,R,Next>> operation;
         
-        protected NonTerminalOperation(Function<R,Next> operation) {
+        protected NonTerminalOperation(Function<R,RuleOperation<NT,T,R,Next>> operation) {
             this.operation = operation;
         }
         
@@ -34,9 +34,9 @@ abstract class RuleOperation<NT,T,R,Type extends RuleType<NT,T,R,?>> {
     protected static class TerminalOperation<NT,T,R,Next extends RuleType<NT,T,R,?>>
     extends RuleOperation<NT,T,R,Terminal<NT,T,R,Next>> {
         
-        protected final Function<T,Next> operation;
+        protected final Function<T,RuleOperation<NT,T,R,Next>> operation;
         
-        protected TerminalOperation(Function<T,Next> operation) {
+        protected TerminalOperation(Function<T,RuleOperation<NT,T,R,Next>> operation) {
             this.operation = operation;
         }
         

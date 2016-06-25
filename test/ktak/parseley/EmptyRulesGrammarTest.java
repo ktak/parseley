@@ -21,16 +21,24 @@ public class EmptyRulesGrammarTest {
         return new Grammar<String,String,String>("S", strCmp, strCmp)
                 .addRule("S", Rule.newRule(
                         RuleSymbols.empty(String.class, String.class, String.class)
-                        .prependNonTerminal("A")))
+                        .prependNonTerminal("A"),
+                        new RuleOperation.NonTerminalOperation<>((A) ->
+                        new RuleOperation.EndOperation<>(A))))
                 .addRule("S", Rule.newRule(
                         RuleSymbols.empty(String.class, String.class, String.class)
-                        .prependTerminal("a")))
+                        .prependTerminal("a"),
+                        new RuleOperation.TerminalOperation<>((a) ->
+                        new RuleOperation.EndOperation<>(a))))
                 .addRule("A", Rule.newRule(
-                        RuleSymbols.empty(String.class, String.class, String.class)))
+                        RuleSymbols.empty(String.class, String.class, String.class),
+                        new RuleOperation.EndOperation<>("epsilon")))
                 .addRule("A", Rule.newRule(
                         RuleSymbols.empty(String.class, String.class, String.class)
                         .prependNonTerminal("S")
-                        .prependNonTerminal("S")));
+                        .prependNonTerminal("S"),
+                        new RuleOperation.NonTerminalOperation<>((S1) ->
+                        new RuleOperation.NonTerminalOperation<>((S2) ->
+                        new RuleOperation.EndOperation<>(S1 + " " + S2)))));
         
     }
     
