@@ -136,6 +136,10 @@ class StateSet<NT,T,R> {
         
     }
     
+    protected AATreeMap<NT,List<CompleteItem<NT,T,R>>> completeItems() {
+        return completeItems;
+    }
+    
     protected List<PredictItem<NT,T,R>> predictItems(NT nextNonTerminal) {
         
         return predictItems.get(nextNonTerminal).match(

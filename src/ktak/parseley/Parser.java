@@ -51,7 +51,7 @@ public class Parser<NT,T,R> {
                 index+1,
                 next.right,
                 chart.insert(index, next.left),
-                input.insert(index, nextTerminal));
+                input.insert(index-1, nextTerminal));
         
     }
     

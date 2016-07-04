@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import ktak.immutablejava.AATreeMap;
 import ktak.immutablejava.List;
+import ktak.immutablejava.Option;
 import ktak.immutablejava.Tuple;
 
 public class Grammar<NT,T,R> {
@@ -54,6 +55,17 @@ public class Grammar<NT,T,R> {
     
     protected boolean isNullable(NT nonTerminal) {
         return nullabilityDeterminer.isNullable(nonTerminal);
+    }
+    
+    protected Option<Rule<NT,T,R,?>> getRule(NT lhs, long index) {
+        
+        return rules.get(lhs).match(
+                (none) -> new Option.None<>(),
+                (lhsRules) -> lhsRules.foldRight(
+                        new Option.None<>(),
+                        (rule) -> (opt) -> rule.left.equals(index) ?
+                                Option.some(rule.right) : opt));
+        
     }
     
 }

@@ -1,6 +1,7 @@
 package ktak.parseley;
 
 import ktak.immutablejava.AATreeMap;
+import ktak.immutablejava.List;
 
 public class ParseState<NT,T,R> {
     
@@ -49,6 +50,31 @@ public class ParseState<NT,T,R> {
                             false,
                             (item) -> (recognized) ->
                                 recognized || (item.startIndex == 0)));
+        
+    }
+    
+    public List<R> results() {
+        
+    	return createRuleIndex(parser.grammar, chart, input)
+    	        .buildResults(parser.grammar.start, 0, nextIndex-1);
+    	
+    }
+    
+    private CompletedRuleIndex<NT,T,R> createRuleIndex(
+            Grammar<NT,T,R> grammar,
+            AATreeMap<Long,StateSet<NT,T,R>> chart,
+            AATreeMap<Long,T> input) {
+        
+        return chart.sortedKeyValPairs().foldRight(
+                new CompletedRuleIndex<>(input, grammar.tCmp),
+                (endIndexStateSet) -> (ruleIndex1) ->
+                endIndexStateSet.right.completeItems().sortedKeyValPairs().foldRight(
+                        ruleIndex1,
+                        (lhsCompleteItems) -> (ruleIndex2) ->
+                        lhsCompleteItems.right.foldRight(
+                                ruleIndex2,
+                                (completeItem) -> (ruleIndex3) ->
+                                ruleIndex3.addCompletedRule(completeItem, endIndexStateSet.left, grammar))));
         
     }
     
