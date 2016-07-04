@@ -36,7 +36,8 @@ public class Parser<NT,T,R> {
             T nextTerminal,
             long index,
             ScanCandidates<NT,T,R> scanCandidates,
-            AATreeMap<Long,StateSet<NT,T,R>> chart) {
+            AATreeMap<Long,StateSet<NT,T,R>> chart,
+            AATreeMap<Long,T> input) {
         
         Tuple<StateSet<NT,T,R>,ScanCandidates<NT,T,R>> next =
                 predictAndComplete(
@@ -49,7 +50,8 @@ public class Parser<NT,T,R> {
                 this,
                 index+1,
                 next.right,
-                chart.insert(index, next.left));
+                chart.insert(index, next.left),
+                input.insert(index, nextTerminal));
         
     }
     
