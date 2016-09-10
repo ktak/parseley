@@ -16,7 +16,8 @@ public class Parser<NT,T,R> {
     }
     
     public static <NT,T,R> Option<Parser<NT,T,R>> createParser(Grammar<NT,T,R> grammar) {
-        return Option.some(new Parser<>(grammar));
+        return InfiniteAmbiguityDetector.isInifinitelyAmbiguous(grammar) ?
+                Option.none() : Option.some(new Parser<>(grammar));
     }
     
     public ParseState<NT,T,R> initialParseState() {

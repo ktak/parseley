@@ -16,16 +16,21 @@ public class EmptyRulesGrammarTest {
                     (parser) -> parser);
     
     /*
-     * S => A | a
+     * S => epsilon | Aa | a
      * A => epsilon | SS
      */
     private static Grammar<String,String,String> createComplexGrammar() {
         return new Grammar<String,String,String>("S", strCmp, strCmp)
                 .addRule("S", Rule.newRule(
+                        RuleSymbols.empty(String.class, String.class, String.class),
+                        new RuleOperation.EndOperation<>("epsilon")))
+                .addRule("S", Rule.newRule(
                         RuleSymbols.empty(String.class, String.class, String.class)
+                        .prependTerminal("a")
                         .prependNonTerminal("A"),
                         new RuleOperation.NonTerminalOperation<>((A) ->
-                        new RuleOperation.EndOperation<>(A))))
+                        new RuleOperation.TerminalOperation<>((a) ->
+                        new RuleOperation.EndOperation<>(A+a)))))
                 .addRule("S", Rule.newRule(
                         RuleSymbols.empty(String.class, String.class, String.class)
                         .prependTerminal("a"),
