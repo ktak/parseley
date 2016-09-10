@@ -3,6 +3,7 @@ package ktak.parseley;
 import java.util.Comparator;
 
 import ktak.immutablejava.AATreeMap;
+import ktak.immutablejava.Option;
 import ktak.immutablejava.Tuple;
 
 public class Parser<NT,T,R> {
@@ -10,8 +11,12 @@ public class Parser<NT,T,R> {
     private static final Comparator<Long> longCmp = (l1, l2) -> l1.compareTo(l2);
     protected final Grammar<NT,T,R> grammar;
     
-    public Parser(Grammar<NT,T,R> grammar) {
+    private Parser(Grammar<NT,T,R> grammar) {
         this.grammar = grammar;
+    }
+    
+    public static <NT,T,R> Option<Parser<NT,T,R>> createParser(Grammar<NT,T,R> grammar) {
+        return Option.some(new Parser<>(grammar));
     }
     
     public ParseState<NT,T,R> initialParseState() {

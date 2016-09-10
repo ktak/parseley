@@ -11,7 +11,9 @@ public class EmptyRulesGrammarTest {
     
     private static final Comparator<String> strCmp = (s1, s2) -> s1.compareTo(s2);
     private static final Parser<String,String,String> complexGrammarParser =
-            new Parser<String,String,String>(createComplexGrammar());
+            Parser.createParser(createComplexGrammar()).match(
+                    (unit) -> { throw new RuntimeException(); },
+                    (parser) -> parser);
     
     /*
      * S => A | a

@@ -11,7 +11,9 @@ public class NoEmptyRulesGrammarTest {
     
     private static final Comparator<String> strCmp = (s1, s2) -> s1.compareTo(s2);
     private static final Parser<String,String,String> expressionParser =
-            new Parser<String,String,String>(createExpressionGrammar());
+            Parser.createParser(createExpressionGrammar()).match(
+                    (unit) -> { throw new RuntimeException(); },
+                    (parser) -> parser);
     
     private static Grammar<String,String,String> createExpressionGrammar() {
         
